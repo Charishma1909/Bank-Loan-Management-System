@@ -5,6 +5,8 @@ customers and loans, built with **Java, JDBC, and MySQL**. Designed as a
 final-year Computer Science project demonstrating layered architecture,
 OOP design, and real-world business rule automation.
 
+***LIVE LINK : https://bank-loan-management-production.up.railway.app/***
+
 ## Features
 
 - **Authentication** — Admin/Employee login with SHA-256 hashed passwords, role-based access.
