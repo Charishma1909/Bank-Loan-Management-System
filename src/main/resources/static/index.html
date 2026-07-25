@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ledger &amp; Co. — Bank Loan Management System</title>
+  <style>
+    :root {
+      --peach: #FFBE91;
+      --apricot: #FFDDB0;
+      --cream: #FFFCE1;
+      --sky: #CFEBFF;
+      --ink: #4A3423;
+      --ink-soft: #7A5C42;
+      --navy: #2C4A63;
+      --line: rgba(74, 52, 35, 0.14);
+      --shadow: 0 10px 30px rgba(74, 52, 35, 0.12);
+      --radius: 16px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--cream);
+      color: var(--ink);
+      font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+      min-height: 100vh;
+    }
+
+    .num {
+      font-family: "Courier New", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .masthead {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 18px 28px;
+      background: linear-gradient(180deg, var(--apricot), var(--peach));
+      border-bottom: 3px double var(--ink);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: var(--cream);
+      border: 2px solid var(--ink);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--ink);
+      box-shadow: inset 0 0 0 3px var(--sky);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 20px;
+      letter-spacing: .03em;
+    }
+
+    .brand p {
+      margin: 0;
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+
+    .who {
+      font-size: 13px;
+      color: var(--ink);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .who .badge {
+      background: var(--sky);
+      border: 1px solid var(--ink);
+      border-radius: 999px;
+      padding: 4px 12px;
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .who .badge.role-admin {
+      background: var(--peach);
+    }
+
+    .who .badge.role-employee {
+      background: var(--sky);
+    }
+
+    .who .badge.role-customer {
+      background: var(--apricot);
+    }
+
+    .logout-btn {
+      border: 1px solid var(--ink);
+      background: var(--cream);
+      color: var(--ink);
+      padding: 6px 14px;
+      border-radius: 999px;
+      cursor: pointer;
+      font-size: 12.5px;
+      transition: transform .15s ease, background .15s ease;
+    }
+
+    .logout-btn:hover {
+      background: var(--sky);
+      transform: translateY(-1px);
+    }
+
+    .app {
+      display: none;
+      grid-template-columns: 220px 1fr;
+      min-height: calc(100vh - 78px);
+    }
+
+    .app.show {
+      display: grid;
+    }
+
+    nav.side {
+      background: var(--apricot);
+      border-right: 2px solid var(--ink);
+      padding: 18px 10px;
+    }
+
+    nav.side .nav-group-label {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--ink-soft);
+      padding: 10px 14px 4px;
+    }
+
+    nav.side button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      text-align: left;
+      padding: 11px 14px;
+      margin-bottom: 6px;
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--ink);
+      cursor: pointer;
+      transition: all .15s ease;
+    }
+
+    nav.side button .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--ink-soft);
+    }
+
+    nav.side button:hover {
+      background: rgba(255, 255, 255, .45);
+    }
+
+    nav.side button.active {
+      background: var(--cream);
+      border-color: var(--ink);
+      box-shadow: var(--shadow);
+      font-weight: 700;
+    }
+
+    nav.side button.active .dot {
+      background: var(--navy);
+    }
+
+    main {
+      padding: 26px 32px 60px;
+    }
+
+    .view {
+      display: none;
+      animation: fadeUp .35s ease;
+    }
+
+    .view.active {
+      display: block;
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    h2.section-title {
+      margin: 0 0 4px;
+      font-size: 24px;
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .section-sub {
+      margin: 0 0 22px;
+      color: var(--ink-soft);
+      font-size: 13.5px;
+    }
+
+    .admin-only-tag {
+      font-size: 10.5px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--ink-soft);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 2px 10px;
+      vertical-align: middle;
+    }
+
+    .grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .grid.cols-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .grid.cols-3 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .grid.cols-2 {
+      grid-template-columns: 1.1fr .9fr;
+    }
+
+    @media (max-width: 980px) {
+      .grid.cols-4 {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .grid.cols-2 {
+        grid-template-columns: 1fr;
+      }
+
+      .grid.cols-3 {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .card.tint-peach {
+      background: var(--peach);
+    }
+
+    .card.tint-sky {
+      background: var(--sky);
+    }
+
+    .card.tint-apricot {
+      background: var(--apricot);
+    }
+
+    .stat .label {
+      font-size: 11.5px;
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      color: var(--ink-soft);
+    }
+
+    .stat .value {
+      font-size: 28px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .stat .foot {
+      font-size: 12px;
+      color: var(--ink-soft);
+      margin-top: 6px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13.5px;
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--line);
+    }
+
+    th {
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: .06em;
+      color: var(--ink-soft);
+    }
+
+    tr:hover td {
+      background: var(--cream);
+    }
+
+    .pill {
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11.5px;
+      border: 1px solid var(--ink);
+    }
+
+    .pill.approved {
+      background: #DCF5DC;
+    }
+
+    .pill.rejected {
+      background: #FBD9D9;
+    }
+
+    .pill.pending {
+      background: var(--sky);
+    }
+
+    .pill.active-y {
+      background: #DCF5DC;
+    }
+
+    .pill.active-n {
+      background: #EFEFEF;
+      color: var(--ink-soft);
+    }
+
+    .pill.role-admin {
+      background: var(--peach);
+    }
+
+    .pill.role-employee {
+      background: var(--sky);
+    }
+
+    label {
+      display: block;
+      font-size: 12.5px;
+      color: var(--ink-soft);
+      margin: 12px 0 5px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    input,
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background: var(--cream);
+      font-family: inherit;
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    input:focus,
+    select:focus {
+      outline: 2px solid var(--navy);
+      outline-offset: 1px;
+    }
+
+    .btn {
+      border: 1px solid var(--ink);
+      background: var(--navy);
+      color: #fff;
+      padding: 11px 20px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 14px;
+      transition: transform .15s ease, box-shadow .15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow);
+    }
+
+    .btn.secondary {
+      background: var(--cream);
+      color: var(--ink);
+    }
+
+    .btn.danger {
+      background: #B33B3B;
+      border-color: #B33B3B;
+    }
+
+    .btn.wide {
+      width: 100%;
+      margin-top: 16px;
+    }
+
+    .btn:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .row {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .row>* {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    .login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background:
+        radial-gradient(circle at 20% 20%, var(--sky) 0, transparent 45%),
+        radial-gradient(circle at 85% 80%, var(--peach) 0, transparent 45%),
+        var(--cream);
+      padding: 30px 16px;
+    }
+
+    .login-card {
+      width: 400px;
+      max-width: 100%;
+      background: #fff;
+      border: 1px solid var(--ink);
+      border-radius: 20px;
+      padding: 34px 34px 28px;
+      box-shadow: 0 20px 50px rgba(74, 52, 35, .2);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-card.wide {
+      width: 520px;
+    }
+
+    .login-card::before {
+      content: "";
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 140px;
+      height: 140px;
+      background: var(--peach);
+      border-radius: 50%;
+      opacity: .6;
+      pointer-events: none;
+    }
+
+    .login-card h2 {
+      margin: 2px 0 2px;
+      position: relative;
+    }
+
+    .login-card p.tag {
+      color: var(--ink-soft);
+      font-size: 12.5px;
+      margin: 0 0 20px;
+      position: relative;
+    }
+
+    .hint {
+      margin-top: 16px;
+      font-size: 11.5px;
+      color: var(--ink-soft);
+      background: var(--cream);
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .err {
+      color: #B33B3B;
+      font-size: 12.5px;
+      min-height: 16px;
+      margin-top: 8px;
+    }
+
+    .portal-tabs {
+      display: flex;
+      gap: 8px;
+      background: var(--cream);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 4px;
+      margin-bottom: 18px;
+      position: relative;
+    }
+
+    .portal-tabs button {
+      flex: 1;
+      border: none;
+      background: transparent;
+      padding: 9px 6px;
+      border-radius: 9px;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 12.5px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--ink-soft);
+    }
+
+    .portal-tabs button.active {
+      background: #fff;
+      color: var(--ink);
+      box-shadow: var(--shadow);
+      font-weight: 700;
+    }
+
+    .auth-panel {
+      display: none;
+    }
+
+    .auth-panel.active {
+      display: block;
+    }
+
+    .stamp-zone {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 30px 0 10px;
+    }
+
+    .stamp {
+      font-size: 26px;
+      padding: 14px 30px;
+      border: 5px solid;
+      border-radius: 12px;
+      transform: rotate(-8deg) scale(0);
+      opacity: 0;
+      text-transform: uppercase;
+      letter-spacing: .15em;
+      font-weight: 700;
+    }
+
+    .stamp.show {
+      animation: stampIn .5s cubic-bezier(.2, 1.4, .4, 1) forwards;
+    }
+
+    @keyframes stampIn {
+      to {
+        transform: rotate(-8deg) scale(1);
+        opacity: 1;
+      }
+    }
+
+    .stamp.approved {
+      color: #1f7a3d;
+      border-color: #1f7a3d;
+    }
+
+    .stamp.rejected {
+      color: #B33B3B;
+      border-color: #B33B3B;
+    }
+
+    .reasons {
+      list-style: none;
+      padding: 0;
+      margin: 14px 0 0;
+      font-size: 13px;
+    }
+
+    .reasons li {
+      padding: 7px 0;
+      border-bottom: 1px dashed var(--line);
+    }
+
+    .reasons li::before {
+      content: "— ";
+      color: var(--ink-soft);
+    }
+
+    .schedule-wrap {
+      max-height: 320px;
+      overflow: auto;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+    }
+
+    ::-webkit-scrollbar {
+      width: 9px;
+      height: 9px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--peach);
+      border-radius: 6px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 22px;
+      right: 22px;
+      background: var(--ink);
+      color: #fff;
+      padding: 12px 18px;
+      border-radius: 10px;
+      font-size: 13px;
+      box-shadow: var(--shadow);
+      transform: translateY(20px);
+      opacity: 0;
+      pointer-events: none;
+      transition: all .25s ease;
+      z-index: 50;
+    }
+
+    .toast.show {
+      transform: none;
+      opacity: 1;
+    }
+
+    .gauge-wrap {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .gauge-num {
+      font-size: 34px;
+      font-weight: 700;
+    }
+
+    .gauge-track {
+      flex: 1;
+      height: 10px;
+      border-radius: 6px;
+      background: var(--apricot);
+      overflow: hidden;
+    }
+
+    .gauge-fill {
+      height: 100%;
+      background: var(--navy);
+      width: 0%;
+      transition: width .6s ease;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="login-wrap" id="authView">
+    <div class="login-card wide">
+      <div class="brand" style="margin-bottom:10px;">
+        <div class="brand-mark">L&amp;</div>
+        <div>
+          <h1 style="font-size:17px;">Ledger &amp; Co.</h1>
+          <p style="margin:0;">Bank Loan Desk</p>
+        </div>
+      </div>
+
+      <div class="portal-tabs" id="portalTabs">
+        <button data-tab="staff-login" class="active">Staff Login</button>
+        <button data-tab="cust-login">Customer Login</button>
+        <button data-tab="cust-signup">Sign Up</button>
+      </div>
+
+      <div class="auth-panel active" id="tab-staff-login">
+        <h2>Staff sign in</h2>
+        <p class="tag">Admin &amp; Employee access to the back office</p>
+        <label for="uname">Username</label>
+        <input id="uname" placeholder="admin" autocomplete="off">
+        <label for="pword">Password</label>
+        <input id="pword" type="password" placeholder="********">
+        <div class="err" id="loginErr"></div>
+        <button class="btn wide" onclick="doStaffLogin()">Enter the back office</button>
+        <div class="hint">Demo credentials: admin / admin123 (Admin, full access) or employee1 / emp123 (Employee,
+          restricted access). Mirrors the seed data in sql/schema.sql.</div>
+      </div>
+
+      <div class="auth-panel" id="tab-cust-login">
+        <h2>Customer sign in</h2>
+        <p class="tag">View your loans, apply, and track repayments</p>
+        <label for="cuEmail">Email</label>
+        <input id="cuEmail" placeholder="ravi.kumar@mail.com" autocomplete="off">
+        <label for="cuPass">Password</label>
+        <input id="cuPass" type="password" placeholder="********">
+        <div class="err" id="custLoginErr"></div>
+        <button class="btn wide" onclick="doCustomerLogin()">Sign in to my account</button>
+        <div class="hint">Demo account: ravi.kumar@mail.com / customer123. No account yet? Use the Sign Up tab.</div>
+      </div>
+
+      <div class="auth-panel" id="tab-cust-signup">
+        <h2>Create your account</h2>
+        <p class="tag">Registers you the same way a bank employee would</p>
+        <div class="row">
+          <div><label>Full name</label><input id="suName"></div>
+          <div><label>Date of birth</label><input id="suDob" type="date"></div>
+        </div>
+        <div class="row">
+          <div><label>Email</label><input id="suEmail"></div>
+          <div><label>Phone</label><input id="suPhone" placeholder="10 digits"></div>
+        </div>
+        <div class="row">
+          <div><label>PAN number</label><input id="suPan" placeholder="ABCDE1234F"></div>
+          <div><label>Employment type</label>
+            <select id="suEmp">
+              <option>SALARIED</option>
+              <option>SELF_EMPLOYED</option>
+              <option>BUSINESS</option>
+              <option>UNEMPLOYED</option>
+            </select>
+          </div>
+        </div>
+        <div class="row">
+          <div><label>Monthly income (Rs)</label><input id="suIncome" type="number"></div>
+          <div><label>Password</label><input id="suPass" type="password"></div>
+        </div>
+        <div class="err" id="signupErr"></div>
+        <button class="btn wide" onclick="doCustomerSignup()">Create account</button>
+        <div class="hint">Credit score starts at a provisional 650 and is refined by the branch after document
+          verification, matching how the console app's registerCustomer() flow works today.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="appRoot">
+    <div class="masthead">
+      <div class="brand">
+        <div class="brand-mark">L&amp;</div>
+        <div>
+          <h1>Ledger &amp; Co.</h1>
+          <p>Bank Loan Management System — Staff</p>
+        </div>
+      </div>
+      <div class="who">
+        <span id="whoName">—</span>
+        <span class="badge" id="whoRole">—</span>
+        <button class="logout-btn" onclick="doLogout()">Sign out</button>
+      </div>
+    </div>
+
+    <div class="app" id="appGrid">
+      <nav class="side" id="sideNav">
+        <button data-view="dashboard" class="active"><span class="dot"></span>Dashboard</button>
+        <button data-view="customers"><span class="dot"></span>Customers</button>
+        <button data-view="apply"><span class="dot"></span>New Application</button>
+        <button data-view="eligibility"><span class="dot"></span>Eligibility Check</button>
+        <button data-view="emi"><span class="dot"></span>EMI Calculator</button>
+        <button data-view="repayments"><span class="dot"></span>Repayments</button>
+        <button data-view="reports"><span class="dot"></span>Reports</button>
+        <div class="nav-group-label" id="adminGroupLabel">Admin only</div>
+        <button data-view="staff" id="staffNavBtn"><span class="dot"></span>Staff Management</button>
+      </nav>
+
+      <main>
+        <section class="view active" id="v-dashboard">
+          <h2 class="section-title">Portfolio at a glance</h2>
+          <p class="section-sub">A live-feeling snapshot, computed from the sample data below.</p>
+          <div class="grid cols-4" id="statCards"></div>
+          <div class="grid cols-2" style="margin-top:22px;">
+            <div class="card">
+              <h3 style="margin-top:0;">Recent applications</h3>
+              <table id="recentTable">
+                <thead>
+                  <tr>
+                    <th>Customer</th>
+                    <th>Category</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <div class="card tint-sky">
+              <h3 style="margin-top:0;">Loan categories on file</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Category</th>
+                    <th>Rate</th>
+                    <th>Min score</th>
+                  </tr>
+                </thead>
+                <tbody id="catTable"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="v-customers">
+          <h2 class="section-title">Customers</h2>
+          <p class="section-sub">Search, review, and register customer profiles.</p>
+          <div class="row" style="margin-bottom:14px;">
+            <input id="custSearch" placeholder="Search by name, PAN, or email…" oninput="renderCustomers()">
+            <button class="btn secondary" onclick="openAddCustomer()" style="flex:0 0 auto;">+ Register
+              customer</button>
+          </div>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Credit score</th>
+                  <th>Monthly income</th>
+                  <th>Employment</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="custTable"></tbody>
+            </table>
+          </div>
+          <div class="card" id="addCustCard" style="display:none; margin-top:16px;">
+            <h3 style="margin-top:0;">Register a new customer</h3>
+            <div class="row">
+              <div><label>Full name</label><input id="ncName"></div>
+              <div><label>Email</label><input id="ncEmail"></div>
+            </div>
+            <div class="row">
+              <div><label>Monthly income (Rs)</label><input id="ncIncome" type="number"></div>
+              <div><label>Credit score</label><input id="ncScore" type="number" placeholder="300-900"></div>
+              <div><label>Employment</label><select id="ncEmp">
+                  <option>SALARIED</option>
+                  <option>SELF_EMPLOYED</option>
+                  <option>UNEMPLOYED</option>
+                </select></div>
+            </div>
+            <button class="btn" style="margin-top:14px;" onclick="addCustomer()">Save customer</button>
+          </div>
+        </section>
+
+        <section class="view" id="v-apply">
+          <h2 class="section-title">New loan application</h2>
+          <p class="section-sub">Fill in the request — you can run the eligibility check right after.</p>
+          <div class="grid cols-2">
+            <div class="card">
+              <label>Customer</label>
+              <select id="apCustomer"></select>
+              <div class="row">
+                <div><label>Loan category</label><select id="apCategory"></select></div>
+                <div><label>Requested amount (Rs)</label><input id="apAmount" type="number" value="500000"></div>
+              </div>
+              <div class="row">
+                <div><label>Tenure (months)</label><input id="apTenure" type="number" value="60"></div>
+              </div>
+              <button class="btn wide" onclick="submitApplication()">Submit application</button>
+            </div>
+            <div class="card tint-apricot">
+              <h3 style="margin-top:0;">Category policy</h3>
+              <p id="apPolicyText" style="font-size:13.5px; line-height:1.6;">Choose a category to see its rules.</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="v-eligibility">
+          <h2 class="section-title">Eligibility engine</h2>
+          <p class="section-sub">Runs the same seven rules described in the project README, client-side, for demo
+            purposes.</p>
+          <div class="grid cols-2">
+            <div class="card">
+              <label>Application</label>
+              <select id="elApp"></select>
+              <button class="btn wide" onclick="runEligibility()">Run check</button>
+              <div class="stamp-zone">
+                <div class="stamp" id="stampBox">—</div>
+              </div>
+            </div>
+            <div class="card">
+              <h3 style="margin-top:0;">Result detail</h3>
+              <div class="gauge-wrap">
+                <div class="gauge-num" id="scoreGaugeNum">—</div>
+                <div class="gauge-track">
+                  <div class="gauge-fill" id="scoreGaugeFill"></div>
+                </div>
+              </div>
+              <p style="font-size:12px; color:var(--ink-soft); margin:6px 0 0;">Credit score vs. category minimum</p>
+              <ul class="reasons" id="reasonsList"></ul>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="v-emi">
+          <h2 class="section-title">EMI calculator</h2>
+          <p class="section-sub">Reducing-balance formula: EMI = P x r x (1+r)^n / ((1+r)^n - 1)</p>
+          <div class="grid cols-2">
+            <div class="card">
+              <label>Principal (Rs)</label><input id="emiP" type="number" value="500000" oninput="calcEMI()">
+              <label>Annual interest rate (%)</label><input id="emiR" type="number" value="10.5" step="0.1"
+                oninput="calcEMI()">
+              <label>Tenure (months)</label><input id="emiN" type="number" value="60" oninput="calcEMI()">
+            </div>
+            <div class="card tint-sky">
+              <div class="stat">
+                <div class="label">Monthly EMI</div>
+                <div class="value num" id="emiOut">Rs0</div>
+                <div class="foot" id="emiTotalOut">Total payable —</div>
+              </div>
+            </div>
+          </div>
+          <div class="card" style="margin-top:18px;">
+            <h3 style="margin-top:0;">Amortization schedule</h3>
+            <div class="schedule-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Installment</th>
+                    <th>Principal</th>
+                    <th>Interest</th>
+                    <th>Balance</th>
+                  </tr>
+                </thead>
+                <tbody id="emiSchedule"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="v-repayments">
+          <h2 class="section-title">Repayment tracking</h2>
+          <p class="section-sub">Mark installments paid and watch the outstanding balance move.</p>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Due date</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="repayTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" id="v-reports">
+          <h2 class="section-title">Reports</h2>
+          <p class="section-sub">Category-wise disbursement and portfolio outcomes.</p>
+          <div class="grid cols-3" id="reportCards"></div>
+          <div class="card" style="margin-top:18px;">
+            <h3 style="margin-top:0;">Disbursement by category</h3>
+            <div id="barChart" style="display:flex; flex-direction:column; gap:10px;"></div>
+          </div>
+        </section>
+
+        <section class="view" id="v-staff">
+          <h2 class="section-title">Staff management <span class="admin-only-tag">Admin only</span></h2>
+          <p class="section-sub">Mirrors UserDAO.insertUser() / findAll() — add staff accounts and control access.</p>
+          <div class="grid cols-2">
+            <div class="card">
+              <h3 style="margin-top:0;">All staff</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody id="staffTable"></tbody>
+              </table>
+            </div>
+            <div class="card tint-apricot">
+              <h3 style="margin-top:0;">Add staff account</h3>
+              <label>Full name</label><input id="nsName">
+              <label>Username</label><input id="nsUser">
+              <label>Temporary password</label><input id="nsPass" type="password">
+              <label>Role</label>
+              <select id="nsRole">
+                <option value="EMPLOYEE">EMPLOYEE</option>
+                <option value="ADMIN">ADMIN</option>
+              </select>
+              <button class="btn wide" onclick="addStaff()">Create account</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div id="custRoot">
+    <div class="masthead">
+      <div class="brand">
+        <div class="brand-mark">L&amp;</div>
+        <div>
+          <h1>Ledger &amp; Co.</h1>
+          <p>Customer Portal</p>
+        </div>
+      </div>
+      <div class="who">
+        <span id="custWhoName">—</span>
+        <span class="badge role-customer">CUSTOMER</span>
+        <button class="logout-btn" onclick="doLogout()">Sign out</button>
+      </div>
+    </div>
+
+    <div class="app" id="custAppGrid">
+      <nav class="side" id="custSideNav">
+        <button data-view="myhome" class="active"><span class="dot"></span>My Dashboard</button>
+        <button data-view="myapply"><span class="dot"></span>Apply for a Loan</button>
+        <button data-view="myapps"><span class="dot"></span>My Applications</button>
+        <button data-view="myemi"><span class="dot"></span>EMI Calculator</button>
+        <button data-view="myrepay"><span class="dot"></span>My Repayments</button>
+        <button data-view="myprofile"><span class="dot"></span>My Profile</button>
+      </nav>
+
+      <main>
+        <section class="view active" id="cv-myhome">
+          <h2 class="section-title">Welcome back<span id="custHomeName"></span></h2>
+          <p class="section-sub">A quick look at where things stand.</p>
+          <div class="grid cols-3" id="custStatCards"></div>
+          <div class="card" style="margin-top:18px;">
+            <h3 style="margin-top:0;">Latest applications</h3>
+            <table>
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="custHomeApps"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" id="cv-myapply">
+          <h2 class="section-title">Apply for a loan</h2>
+          <p class="section-sub">Submit a request against your registered profile — the branch reviews it with the same
+            eligibility engine.</p>
+          <div class="grid cols-2">
+            <div class="card">
+              <label>Loan category</label>
+              <select id="custApCategory"></select>
+              <div class="row">
+                <div><label>Requested amount (Rs)</label><input id="custApAmount" type="number" value="500000"></div>
+                <div><label>Tenure (months)</label><input id="custApTenure" type="number" value="60"></div>
+              </div>
+              <button class="btn wide" onclick="customerSubmitApplication()">Submit application</button>
+            </div>
+            <div class="card tint-apricot">
+              <h3 style="margin-top:0;">Category policy</h3>
+              <p id="custApPolicyText" style="font-size:13.5px; line-height:1.6;">Choose a category to see its rules.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="cv-myapps">
+          <h2 class="section-title">My applications</h2>
+          <p class="section-sub">Every request you've submitted, with the branch's decision once processed.</p>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Amount</th>
+                  <th>Tenure</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="custAppsTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" id="cv-myemi">
+          <h2 class="section-title">EMI calculator</h2>
+          <p class="section-sub">Reducing-balance formula: EMI = P x r x (1+r)^n / ((1+r)^n - 1)</p>
+          <div class="grid cols-2">
+            <div class="card">
+              <label>Principal (Rs)</label><input id="cEmiP" type="number" value="500000" oninput="custCalcEMI()">
+              <label>Annual interest rate (%)</label><input id="cEmiR" type="number" value="10.5" step="0.1"
+                oninput="custCalcEMI()">
+              <label>Tenure (months)</label><input id="cEmiN" type="number" value="60" oninput="custCalcEMI()">
+            </div>
+            <div class="card tint-sky">
+              <div class="stat">
+                <div class="label">Monthly EMI</div>
+                <div class="value num" id="cEmiOut">Rs0</div>
+                <div class="foot" id="cEmiTotalOut">Total payable —</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="view" id="cv-myrepay">
+          <h2 class="section-title">My repayments</h2>
+          <p class="section-sub">Your installment schedule across all approved loans.</p>
+          <div class="card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Due date</th>
+                  <th>Amount</th>
+                  <th>Status</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="custRepayTable"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="view" id="cv-myprofile">
+          <h2 class="section-title">My profile</h2>
+          <p class="section-sub">Read-only view of the record your branch holds on file.</p>
+          <div class="card" id="custProfileCard" style="max-width:480px;"></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const USERS = [
+      { id: 1, username: "admin", password: "admin123", role: "ADMIN", name: "Admin", active: true },
+      { id: 2, username: "employee1", password: "emp123", role: "EMPLOYEE", name: "Employee One", active: true },
+    ];
+
+    const CATEGORIES = [
+      { id: 1, name: "HOME", rate: 8.5, minAmt: 500000, maxAmt: 9000000, minTenure: 60, maxTenure: 360, minScore: 700, maxIncomeMultiplier: 5 },
+      { id: 2, name: "PERSONAL", rate: 12.0, minAmt: 50000, maxAmt: 1500000, minTenure: 12, maxTenure: 60, minScore: 650, maxIncomeMultiplier: 2 },
+      { id: 3, name: "CAR", rate: 9.25, minAmt: 100000, maxAmt: 2000000, minTenure: 12, maxTenure: 84, minScore: 650, maxIncomeMultiplier: 3 },
+      { id: 4, name: "EDUCATION", rate: 7.75, minAmt: 100000, maxAmt: 2500000, minTenure: 12, maxTenure: 180, minScore: 600, maxIncomeMultiplier: 4 },
+      { id: 5, name: "BUSINESS", rate: 11.5, minAmt: 300000, maxAmt: 5000000, minTenure: 12, maxTenure: 120, minScore: 700, maxIncomeMultiplier: 3 },
+    ];
+
+    let customers = [
+      { id: 1, name: "Ravi Kumar", email: "ravi.kumar@mail.com", password: "customer123", income: 85000, score: 742, employment: "SALARIED", phone: "9876543210", pan: "ABCDE1234F", dob: "1990-04-12" },
+      { id: 2, name: "Ayesha Siddiqui", email: "ayesha.s@mail.com", password: "customer123", income: 52000, score: 668, employment: "SELF_EMPLOYED", phone: "9876500000", pan: "AYSPD5678K", dob: "1992-09-02" },
+      { id: 3, name: "Meera Nair", email: "meera.nair@mail.com", password: "customer123", income: 38000, score: 601, employment: "SALARIED", phone: "9876511111", pan: "MEENR3456L", dob: "1995-01-20" },
+      { id: 4, name: "Jonas Fernandes", email: "jonas.f@mail.com", password: "customer123", income: 0, score: 590, employment: "UNEMPLOYED", phone: "9876522222", pan: "JOFER9012M", dob: "1998-06-30" },
+    ];
+
+    let applications = [
+      { id: 1, customerId: 1, categoryId: 1, amount: 3200000, tenure: 180, status: "APPROVED" },
+      { id: 2, customerId: 2, categoryId: 2, amount: 400000, tenure: 36, status: "APPROVED" },
+      { id: 3, customerId: 3, categoryId: 3, amount: 600000, tenure: 60, status: "REJECTED" },
+      { id: 4, customerId: 1, categoryId: 4, amount: 800000, tenure: 96, status: "PENDING" },
+    ];
+
+    let repayments = [
+      { customerId: 1, customer: "Ravi Kumar", due: "2026-08-05", amount: 31450, status: "DUE" },
+      { customerId: 1, customer: "Ravi Kumar", due: "2026-07-05", amount: 31450, status: "PAID" },
+      { customerId: 2, customer: "Ayesha Siddiqui", due: "2026-08-10", amount: 13290, status: "OVERDUE" },
+      { customerId: 2, customer: "Ayesha Siddiqui", due: "2026-07-10", amount: 13290, status: "PAID" },
+    ];
+
+    let nextCustId = 5, nextAppId = 5, nextUserId = 3;
+    let currentUser = null;
+    let currentCustomer = null;
+
+    document.getElementById('portalTabs').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-tab]');
+      if (!btn) return;
+      document.querySelectorAll('#portalTabs button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.auth-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    });
+    function switchAuthTab(tab) {
+      document.querySelector('#portalTabs button[data-tab="' + tab + '"]').click();
+    }
+
+    function doStaffLogin() {
+      const u = document.getElementById('uname').value.trim();
+      const p = document.getElementById('pword').value;
+      const match = USERS.find(x => x.username === u && x.password === p);
+      const err = document.getElementById('loginErr');
+      if (!match) { err.textContent = "Invalid username or password."; return; }
+      if (!match.active) { err.textContent = "This account has been deactivated. Contact the administrator."; return; }
+      err.textContent = "";
+      currentUser = match;
+      document.getElementById('authView').style.display = 'none';
+      document.getElementById('whoName').textContent = match.name;
+      const roleBadge = document.getElementById('whoRole');
+      roleBadge.textContent = match.role;
+      roleBadge.className = 'badge role-' + match.role.toLowerCase();
+      document.getElementById('appGrid').classList.add('show');
+      applyRolePermissions();
+      initApp();
+      toast('Welcome back, ' + match.name.split(' ')[0] + '.');
+    }
+
+    function applyRolePermissions() {
+      const isAdmin = currentUser.role === 'ADMIN';
+      document.getElementById('staffNavBtn').style.display = isAdmin ? 'flex' : 'none';
+      document.getElementById('adminGroupLabel').style.display = isAdmin ? 'block' : 'none';
+    }
+
+    function doCustomerLogin() {
+      const email = document.getElementById('cuEmail').value.trim().toLowerCase();
+      const pass = document.getElementById('cuPass').value;
+      const err = document.getElementById('custLoginErr');
+      const match = customers.find(c => c.email.toLowerCase() === email && c.password === pass);
+      if (!match) { err.textContent = "Invalid email or password."; return; }
+      err.textContent = "";
+      currentCustomer = match;
+      document.getElementById('authView').style.display = 'none';
+      document.getElementById('custWhoName').textContent = match.name;
+      document.getElementById('custAppGrid').classList.add('show');
+      initCustomerApp();
+      toast('Welcome, ' + match.name.split(' ')[0] + '.');
+    }
+    function doCustomerSignup() {
+      const name = document.getElementById('suName').value.trim();
+      const dob = document.getElementById('suDob').value;
+      const email = document.getElementById('suEmail').value.trim();
+      const phone = document.getElementById('suPhone').value.trim();
+      const pan = document.getElementById('suPan').value.trim().toUpperCase();
+      const employment = document.getElementById('suEmp').value;
+      const income = Number(document.getElementById('suIncome').value) || 0;
+      const password = document.getElementById('suPass').value;
+      const err = document.getElementById('signupErr');
+
+      if (!name || !email || !password) { err.textContent = "Name, email, and password are required."; return; }
+      if (customers.some(c => c.email.toLowerCase() === email.toLowerCase())) { err.textContent = "An account with that email already exists."; return; }
+      err.textContent = "";
+
+      const c = { id: nextCustId++, name, email, password, income, score: 650, employment, phone, pan, dob };
+      customers.push(c);
+      currentCustomer = c;
+      document.getElementById('authView').style.display = 'none';
+      document.getElementById('custWhoName').textContent = c.name;
+      document.getElementById('custAppGrid').classList.add('show');
+      initCustomerApp();
+      toast('Account created — welcome, ' + c.name.split(' ')[0] + '!');
+    }
+
+    function doLogout() {
+      currentUser = null; currentCustomer = null;
+      document.getElementById('appGrid').classList.remove('show');
+      document.getElementById('custAppGrid').classList.remove('show');
+      document.getElementById('authView').style.display = 'flex';
+      document.getElementById('uname').value = '';
+      document.getElementById('pword').value = '';
+      document.getElementById('cuEmail').value = '';
+      document.getElementById('cuPass').value = '';
+      switchAuthTab('staff-login');
+    }
+
+    document.getElementById('sideNav').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-view]');
+      if (!btn || btn.style.display === 'none') return;
+      document.querySelectorAll('#sideNav button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('#appGrid .view').forEach(v => v.classList.remove('active'));
+      document.getElementById('v-' + btn.dataset.view).classList.add('active');
+      if (btn.dataset.view === 'staff') renderStaffTable();
+    });
+
+    document.getElementById('custSideNav').addEventListener('click', (e) => {
+      const btn = e.target.closest('button[data-view]');
+      if (!btn) return;
+      document.querySelectorAll('#custSideNav button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('#custAppGrid .view').forEach(v => v.classList.remove('active'));
+      document.getElementById('cv-' + btn.dataset.view).classList.add('active');
+    });
+
+    const rupee = n => 'Rs ' + Math.round(n).toLocaleString('en-IN');
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(t._h);
+      t._h = setTimeout(() => t.classList.remove('show'), 2400);
+    }
+    function catById(id) { return CATEGORIES.find(c => c.id === id); }
+    function custById(id) { return customers.find(c => c.id === id); }
+
+    function computeEMI(P, annualRatePct, n) {
+      const r = (annualRatePct / 12) / 100;
+      if (r === 0) return P / n;
+      const factor = Math.pow(1 + r, n);
+      return P * r * factor / (factor - 1);
+    }
+
+    function evaluateEligibility(app) {
+      const c = custById(app.customerId), cat = catById(app.categoryId);
+      const reasons = [];
+      if (app.amount < cat.minAmt || app.amount > cat.maxAmt) reasons.push('Amount must be between ' + rupee(cat.minAmt) + ' and ' + rupee(cat.maxAmt));
+      if (app.tenure < cat.minTenure || app.tenure > cat.maxTenure) reasons.push('Tenure must be between ' + cat.minTenure + ' and ' + cat.maxTenure + ' months');
+      if (c.score < cat.minScore) reasons.push('Credit score ' + c.score + ' is below the required ' + cat.minScore);
+      if (c.employment === 'UNEMPLOYED') reasons.push('Employment status is UNEMPLOYED');
+      const incomeCap = c.income * 12 * cat.maxIncomeMultiplier;
+      if (app.amount > incomeCap) reasons.push('Amount exceeds income-based cap of ' + rupee(incomeCap));
+      const emi = computeEMI(app.amount, cat.rate, app.tenure);
+      if (emi > c.income * 0.5) reasons.push('EMI ' + rupee(emi) + ' exceeds 50% of monthly income');
+      return { approved: reasons.length === 0, reasons, emi, score: c.score, minScore: cat.minScore };
+    }
+
+    function initApp() {
+      renderDashboard();
+      renderCustomers();
+      renderApplyForm();
+      renderEligibilityOptions();
+      calcEMI();
+      renderRepayments();
+      renderReports();
+      renderStaffTable();
+    }
+
+    function renderDashboard() {
+      const totalDisbursed = applications.filter(a => a.status === 'APPROVED').reduce((s, a) => s + a.amount, 0);
+      const approved = applications.filter(a => a.status === 'APPROVED').length;
+      const pending = applications.filter(a => a.status === 'PENDING').length;
+      const stats = [
+        { label: 'Total customers', value: customers.length, foot: 'registered profiles', tint: 'tint-sky' },
+        { label: 'Applications', value: applications.length, foot: approved + ' approved · ' + pending + ' pending', tint: 'tint-peach' },
+        { label: 'Disbursed', value: rupee(totalDisbursed), foot: 'across approved loans', tint: 'tint-apricot' },
+        { label: 'Staff on file', value: USERS.length, foot: currentUser.role === 'ADMIN' ? 'you can manage these' : 'visible to admin only', tint: '' },
+      ];
+      document.getElementById('statCards').innerHTML = stats.map(s =>
+        '<div class="card stat ' + s.tint + '"><div class="label">' + s.label + '</div><div class="value">' + s.value + '</div><div class="foot">' + s.foot + '</div></div>').join('');
+
+      const rows = applications.slice(-5).reverse().map(a => {
+        const c = custById(a.customerId), cat = catById(a.categoryId);
+        return '<tr><td>' + c.name + '</td><td>' + cat.name + '</td><td>' + rupee(a.amount) + '</td><td><span class="pill ' + a.status.toLowerCase() + '">' + a.status + '</span></td></tr>';
+      }).join('');
+      document.querySelector('#recentTable tbody').innerHTML = rows;
+
+      document.getElementById('catTable').innerHTML = CATEGORIES.map(c =>
+        '<tr><td>' + c.name + '</td><td>' + c.rate + '%</td><td>' + c.minScore + '</td></tr>').join('');
+    }
+
+    function renderCustomers() {
+      const q = (document.getElementById('custSearch')?.value || '').toLowerCase();
+      const isAdmin = currentUser.role === 'ADMIN';
+      const rows = customers.filter(c => !q || c.name.toLowerCase().includes(q) || c.email.toLowerCase().includes(q))
+        .map(c => '<tr><td>' + c.name + '</td><td>' + c.email + '</td><td>' + c.score + '</td><td>' + rupee(c.income) + '</td><td>' + c.employment + '</td><td>' +
+          (isAdmin ? '<button class="btn danger" style="padding:6px 12px; font-size:12px;" onclick="deleteCustomer(' + c.id + ')">Delete</button>' : '<span style="font-size:11.5px; color:var(--ink-soft);">Admin only</span>') +
+          '</td></tr>').join('');
+      document.getElementById('custTable').innerHTML = rows || '<tr><td colspan="6">No matches.</td></tr>';
+
+      const sel = document.getElementById('apCustomer');
+      if (sel) { sel.innerHTML = customers.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join(''); }
+    }
+    function deleteCustomer(id) {
+      if (currentUser.role !== 'ADMIN') { toast('Only Admin can delete customer records.'); return; }
+      if (!confirm('Delete this customer record? This cannot be undone.')) return;
+      customers = customers.filter(c => c.id !== id);
+      renderCustomers();
+      renderDashboard();
+      toast('Customer deleted.');
+    }
+    function openAddCustomer() { document.getElementById('addCustCard').style.display = 'block'; }
+    function addCustomer() {
+      const name = document.getElementById('ncName').value.trim();
+      const email = document.getElementById('ncEmail').value.trim();
+      const income = Number(document.getElementById('ncIncome').value) || 0;
+      const score = Number(document.getElementById('ncScore').value) || 0;
+      const employment = document.getElementById('ncEmp').value;
+      if (!name || !email) { toast('Name and email are required.'); return; }
+      customers.push({ id: nextCustId++, name, email, password: 'customer123', income, score, employment });
+      document.getElementById('ncName').value = '';
+      document.getElementById('ncEmail').value = '';
+      document.getElementById('ncIncome').value = '';
+      document.getElementById('ncScore').value = '';
+      document.getElementById('addCustCard').style.display = 'none';
+      renderCustomers();
+      renderDashboard();
+      toast(name + ' registered.');
+    }
+
+    function renderApplyForm() {
+      const catSel = document.getElementById('apCategory');
+      catSel.innerHTML = CATEGORIES.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join('');
+      catSel.onchange = updatePolicyText;
+      updatePolicyText();
+      renderCustomers();
+    }
+    function updatePolicyText() {
+      const c = catById(Number(document.getElementById('apCategory').value));
+      document.getElementById('apPolicyText').innerHTML =
+        'Amount: <b>' + rupee(c.minAmt) + ' – ' + rupee(c.maxAmt) + '</b><br>Tenure: <b>' + c.minTenure + '–' + c.maxTenure + ' months</b><br>Min. credit score: <b>' + c.minScore + '</b><br>Interest rate: <b>' + c.rate + '%</b> p.a.<br>Income cap: up to <b>' + c.maxIncomeMultiplier + 'x</b> annual income';
+    }
+    function submitApplication() {
+      const customerId = Number(document.getElementById('apCustomer').value);
+      const categoryId = Number(document.getElementById('apCategory').value);
+      const amount = Number(document.getElementById('apAmount').value);
+      const tenure = Number(document.getElementById('apTenure').value);
+      if (!customerId || !amount || !tenure) { toast('Please complete all fields.'); return; }
+      applications.push({ id: nextAppId++, customerId, categoryId, amount, tenure, status: 'PENDING' });
+      renderDashboard();
+      renderEligibilityOptions();
+      renderReports();
+      toast('Application submitted — run an eligibility check next.');
+    }
+
+    function renderEligibilityOptions() {
+      const sel = document.getElementById('elApp');
+      sel.innerHTML = applications.map(a => {
+        const c = custById(a.customerId), cat = catById(a.categoryId);
+        return '<option value="' + a.id + '">#' + a.id + ' · ' + c.name + ' · ' + cat.name + ' · ' + rupee(a.amount) + '</option>';
+      }).join('');
+    }
+
+    function runEligibility() {
+      const id = Number(document.getElementById('elApp').value);
+      const app = applications.find(a => a.id === id);
+      if (!app) return;
+      const result = evaluateEligibility(app);
+      app.status = result.approved ? 'APPROVED' : 'REJECTED';
+
+      const stamp = document.getElementById('stampBox');
+      stamp.className = 'stamp'; void stamp.offsetWidth;
+      stamp.textContent = result.approved ? 'Approved' : 'Rejected';
+      stamp.classList.add(result.approved ? 'approved' : 'rejected', 'show');
+
+      document.getElementById('reasonsList').innerHTML = result.approved
+        ? '<li>All eligibility rules satisfied.</li>'
+        : result.reasons.map(r => '<li>' + r + '</li>').join('');
+
+      const pct = Math.max(0, Math.min(100, Math.round((result.score / 900) * 100)));
+      document.getElementById('scoreGaugeNum').textContent = result.score;
+      document.getElementById('scoreGaugeFill').style.width = pct + '%';
+
+      renderDashboard();
+      renderEligibilityOptions();
+      renderReports();
+    }
+
+    function calcEMI() {
+      const P = Number(document.getElementById('emiP').value) || 0;
+      const r = Number(document.getElementById('emiR').value) || 0;
+      const n = Number(document.getElementById('emiN').value) || 1;
+      const emi = computeEMI(P, r, n);
+      document.getElementById('emiOut').textContent = rupee(emi);
+      document.getElementById('emiTotalOut').textContent = 'Total payable ' + rupee(emi * n) + ' · Interest ' + rupee(emi * n - P);
+
+      let balance = P;
+      const monthlyRate = (r / 12) / 100;
+      let rows = '';
+      for (let i = 1; i <= n; i++) {
+        const interest = balance * monthlyRate;
+        const principalPaid = emi - interest;
+        balance = Math.max(0, balance - principalPaid);
+        rows += '<tr><td>' + i + '</td><td>' + rupee(emi) + '</td><td>' + rupee(principalPaid) + '</td><td>' + rupee(interest) + '</td><td>' + rupee(balance) + '</td></tr>';
+      }
+      document.getElementById('emiSchedule').innerHTML = rows;
+    }
+
+    function renderRepayments() {
+      document.getElementById('repayTable').innerHTML = repayments.map((r, i) =>
+        '<tr><td>' + r.customer + '</td><td>' + r.due + '</td><td>' + rupee(r.amount) + '</td><td><span class="pill ' + (r.status === 'PAID' ? 'approved' : (r.status === 'OVERDUE' ? 'rejected' : 'pending')) + '">' + r.status + '</span></td><td>' +
+        (r.status === 'PAID' ? '' : '<button class="btn secondary" onclick="markPaid(' + i + ')">Mark paid</button>') + '</td></tr>').join('');
+    }
+    function markPaid(i) {
+      repayments[i].status = 'PAID';
+      renderRepayments();
+      renderCustRepayments();
+      toast('Installment recorded as paid.');
+    }
+
+    function renderReports() {
+      const approved = applications.filter(a => a.status === 'APPROVED').length;
+      const rejected = applications.filter(a => a.status === 'REJECTED').length;
+      const pending = applications.filter(a => a.status === 'PENDING').length;
+      const cards = [
+        { label: 'Approved', value: approved, tint: 'tint-sky' },
+        { label: 'Rejected', value: rejected, tint: 'tint-peach' },
+        { label: 'Pending', value: pending, tint: 'tint-apricot' },
+      ];
+      document.getElementById('reportCards').innerHTML = cards.map(c =>
+        '<div class="card stat ' + c.tint + '"><div class="label">' + c.label + '</div><div class="value">' + c.value + '</div></div>').join('');
+
+      const byCat = CATEGORIES.map(cat => {
+        const sum = applications.filter(a => a.categoryId === cat.id && a.status === 'APPROVED').reduce((s, a) => s + a.amount, 0);
+        return { name: cat.name, sum };
+      });
+      const max = Math.max(1, ...byCat.map(b => b.sum));
+      document.getElementById('barChart').innerHTML = byCat.map(b =>
+        '<div><div style="display:flex; justify-content:space-between; font-size:12.5px; margin-bottom:4px;"><span>' + b.name + '</span><span class="num">' + rupee(b.sum) + '</span></div>' +
+        '<div class="gauge-track"><div class="gauge-fill" style="width:' + ((b.sum / max * 100) || 0) + '%"></div></div></div>').join('');
+    }
+
+    function renderStaffTable() {
+      document.getElementById('staffTable').innerHTML = USERS.map(u =>
+        '<tr><td>' + u.name + '</td><td>' + u.username + '</td><td><span class="pill role-' + u.role.toLowerCase() + '">' + u.role + '</span></td>' +
+        '<td><span class="pill ' + (u.active ? 'active-y' : 'active-n') + '">' + (u.active ? 'ACTIVE' : 'DEACTIVATED') + '</span></td>' +
+        '<td><button class="btn secondary" style="padding:6px 12px; font-size:12px;" onclick="toggleStaffActive(' + u.id + ')" ' +
+        (currentUser.role !== 'ADMIN' || u.id === currentUser.id ? 'disabled' : '') + '>' + (u.active ? 'Deactivate' : 'Reactivate') + '</button></td></tr>').join('');
+    }
+    function toggleStaffActive(id) {
+      if (currentUser.role !== 'ADMIN') { toast('Only Admin can manage staff.'); return; }
+      const u = USERS.find(x => x.id === id);
+      if (u.id === currentUser.id) { toast("You can't deactivate your own account."); return; }
+      u.active = !u.active;
+      renderStaffTable();
+      renderDashboard();
+      toast(u.name + (u.active ? ' reactivated.' : ' deactivated.'));
+    }
+    function addStaff() {
+      if (currentUser.role !== 'ADMIN') { toast('Only Admin can add staff.'); return; }
+      const name = document.getElementById('nsName').value.trim();
+      const username = document.getElementById('nsUser').value.trim();
+      const pass = document.getElementById('nsPass').value;
+      const role = document.getElementById('nsRole').value;
+      if (!name || !username || !pass) { toast('All fields are required.'); return; }
+      if (USERS.some(u => u.username === username)) { toast('That username is already taken.'); return; }
+      USERS.push({ id: nextUserId++, username, password: pass, role, name, active: true });
+      document.getElementById('nsName').value = '';
+      document.getElementById('nsUser').value = '';
+      document.getElementById('nsPass').value = '';
+      renderStaffTable();
+      renderDashboard();
+      toast('Staff account created for ' + name + ' (' + role + ').');
+    }
+
+    function initCustomerApp() {
+      document.getElementById('custHomeName').textContent = ', ' + currentCustomer.name.split(' ')[0];
+      renderCustHome();
+      renderCustApplyForm();
+      renderCustApps();
+      custCalcEMI();
+      renderCustRepayments();
+      renderCustProfile();
+    }
+    function myApps() { return applications.filter(a => a.customerId === currentCustomer.id); }
+
+    function renderCustHome() {
+      const apps = myApps();
+      const approved = apps.filter(a => a.status === 'APPROVED').length;
+      const pending = apps.filter(a => a.status === 'PENDING').length;
+      const outstanding = repayments.filter(r => r.customerId === currentCustomer.id && r.status !== 'PAID').reduce((s, r) => s + r.amount, 0);
+      document.getElementById('custStatCards').innerHTML = [
+        { label: 'My applications', value: apps.length, foot: approved + ' approved · ' + pending + ' pending', tint: 'tint-sky' },
+        { label: 'Credit score', value: currentCustomer.score, foot: 'as on file with the branch', tint: 'tint-peach' },
+        { label: 'Outstanding dues', value: rupee(outstanding), foot: 'across all installments', tint: 'tint-apricot' },
+      ].map(s => '<div class="card stat ' + s.tint + '"><div class="label">' + s.label + '</div><div class="value">' + s.value + '</div><div class="foot">' + s.foot + '</div></div>').join('');
+
+      document.getElementById('custHomeApps').innerHTML = apps.slice(-5).reverse().map(a => {
+        const cat = catById(a.categoryId);
+        return '<tr><td>' + cat.name + '</td><td>' + rupee(a.amount) + '</td><td><span class="pill ' + a.status.toLowerCase() + '">' + a.status + '</span></td></tr>';
+      }).join('') || '<tr><td colspan="3">No applications yet.</td></tr>';
+    }
+
+    function renderCustApplyForm() {
+      const sel = document.getElementById('custApCategory');
+      sel.innerHTML = CATEGORIES.map(c => '<option value="' + c.id + '">' + c.name + '</option>').join('');
+      sel.onchange = updateCustPolicyText;
+      updateCustPolicyText();
+    }
+    function updateCustPolicyText() {
+      const c = catById(Number(document.getElementById('custApCategory').value));
+      document.getElementById('custApPolicyText').innerHTML =
+        'Amount: <b>' + rupee(c.minAmt) + ' – ' + rupee(c.maxAmt) + '</b><br>Tenure: <b>' + c.minTenure + '–' + c.maxTenure + ' months</b><br>Min. credit score: <b>' + c.minScore + '</b><br>Interest rate: <b>' + c.rate + '%</b> p.a.<br>Income cap: up to <b>' + c.maxIncomeMultiplier + 'x</b> annual income';
+    }
+    function customerSubmitApplication() {
+      const categoryId = Number(document.getElementById('custApCategory').value);
+      const amount = Number(document.getElementById('custApAmount').value);
+      const tenure = Number(document.getElementById('custApTenure').value);
+      if (!amount || !tenure) { toast('Please complete all fields.'); return; }
+      const app = { id: nextAppId++, customerId: currentCustomer.id, categoryId, amount, tenure, status: 'PENDING' };
+      applications.push(app);
+      const result = evaluateEligibility(app);
+      app.status = result.approved ? 'APPROVED' : 'REJECTED';
+      renderCustHome();
+      renderCustApps();
+      toast(result.approved ? 'Application approved automatically!' : 'Application submitted — not eligible, see status for reasons.');
+    }
+
+    function renderCustApps() {
+      const rows = myApps().slice().reverse().map(a => {
+        const cat = catById(a.categoryId);
+        return '<tr><td>' + cat.name + '</td><td>' + rupee(a.amount) + '</td><td>' + a.tenure + ' mo</td><td><span class="pill ' + a.status.toLowerCase() + '">' + a.status + '</span></td></tr>';
+      }).join('');
+      document.getElementById('custAppsTable').innerHTML = rows || '<tr><td colspan="4">No applications yet — apply from the "Apply for a Loan" tab.</td></tr>';
+    }
+
+    function custCalcEMI() {
+      const P = Number(document.getElementById('cEmiP').value) || 0;
+      const r = Number(document.getElementById('cEmiR').value) || 0;
+      const n = Number(document.getElementById('cEmiN').value) || 1;
+      const emi = computeEMI(P, r, n);
+      document.getElementById('cEmiOut').textContent = rupee(emi);
+      document.getElementById('cEmiTotalOut').textContent = 'Total payable ' + rupee(emi * n) + ' · Interest ' + rupee(emi * n - P);
+    }
+
+    function renderCustRepayments() {
+      const mine = repayments.map((r, i) => Object.assign({}, r, { idx: i })).filter(r => r.customerId === currentCustomer.id);
+      document.getElementById('custRepayTable').innerHTML = mine.map(r =>
+        '<tr><td>' + r.due + '</td><td>' + rupee(r.amount) + '</td><td><span class="pill ' + (r.status === 'PAID' ? 'approved' : (r.status === 'OVERDUE' ? 'rejected' : 'pending')) + '">' + r.status + '</span></td><td>' +
+        (r.status === 'PAID' ? '' : '<button class="btn secondary" onclick="custMarkPaid(' + r.idx + ')">Pay now</button>') + '</td></tr>').join('') || '<tr><td colspan="4">No repayment schedule yet.</td></tr>';
+    }
+    function custMarkPaid(i) {
+      repayments[i].status = 'PAID';
+      renderCustRepayments();
+      renderRepayments();
+      renderCustHome();
+      toast('Payment recorded — thank you!');
+    }
+
+    function renderCustProfile() {
+      const c = currentCustomer;
+      document.getElementById('custProfileCard').innerHTML =
+        '<div class="row"><div><label>Full name</label><div>' + c.name + '</div></div></div>' +
+        '<div class="row"><div><label>Email</label><div>' + c.email + '</div></div><div><label>Phone</label><div>' + (c.phone || '—') + '</div></div></div>' +
+        '<div class="row"><div><label>PAN</label><div>' + (c.pan || '—') + '</div></div><div><label>Date of birth</label><div>' + (c.dob || '—') + '</div></div></div>' +
+        '<div class="row"><div><label>Employment</label><div>' + c.employment + '</div></div><div><label>Monthly income</label><div>' + rupee(c.income) + '</div></div></div>' +
+        '<div class="row"><div><label>Credit score</label><div>' + c.score + '</div></div></div>';
+    }
+  </script>
+</body>
+
+</html>
